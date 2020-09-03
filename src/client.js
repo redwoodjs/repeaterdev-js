@@ -1,8 +1,8 @@
 import { GraphQLClient } from 'graphql-request'
 import { create } from './queries'
-import { CreateError } from './errors'
+import { CreateError, ParameterError } from './errors'
 
-export class Client {
+export default class Client {
   DEFAULT_OPTIONS = {
     endpoint: 'https://api.repeater.dev/graphql',
   }
@@ -42,7 +42,7 @@ export class Client {
 
   validateParams(params) {
     if (!params.name || params.name === '')
-      throw ParameterError('name', 'is required')
+      throw new ParameterError('name', 'is required')
   }
 
   normalizeParams(params) {

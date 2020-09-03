@@ -3,10 +3,12 @@
   "version": "0.0.1",
   "description": "Official Javascript library for Repeater.dev",
   "main": "dist/index.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "yarn babel src -d dist",
-    "test": "test"
+    "test": "jest"
   },
   "repository": "https://github.com/redwoodjs/repeater-js",
   "keywords": [
@@ -20,10 +22,10 @@
   "author": "Rob Cameron",
   "license": "MIT",
   "dependencies": {
+    "graphql": "^15.3.0",
     "graphql-request": "^3.0.0"
   },
   "devDependencies": {
-    "jest": "^26.4.2",
     "@babel/cli": "^7.11.6",
     "@babel/core": "^7.11.6",
     "@babel/node": "^7.10.5",
@@ -32,6 +34,7 @@
     "@babel/preset-env": "^7.11.5",
     "@babel/runtime-corejs3": "^7.11.2",
     "babel-jest": "^26.3.0",
-    "core-js": "^3.6.5"
+    "core-js": "^3.6.5",
+    "jest": "^26.4.2"
   }
 }
