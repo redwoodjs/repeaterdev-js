@@ -23,7 +23,8 @@
   "license": "MIT",
   "dependencies": {
     "graphql": "^15.3.0",
-    "graphql-request": "^3.0.0"
+    "graphql-request": "^3.0.0",
+    "iso8601-duration": "^1.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.11.6",

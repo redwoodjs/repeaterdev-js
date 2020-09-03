@@ -1,20 +1,26 @@
+export const repeaterErrorPrefix = ''
+
 export class RepeaterError extends Error {
   constructor(message) {
-    super(message)
+    super(`${repeaterErrorPrefix}${message}`)
     this.name = 'RepeaterError'
   }
 }
 
+export const createErrorPrefix = 'Could not create job: '
+
 export class CreateError extends RepeaterError {
   constructor(message) {
-    super(`Could not create job: ${message}`)
+    super(`${createErrorPrefix}${message}`)
     this.name = 'CreateError'
   }
 }
 
+const parameterErrorPrefix = 'Parameter error: '
+
 export class ParameterError extends RepeaterError {
   constructor(field, message) {
-    super(`Parameter error: ${field} ${message}`)
+    super(`${parameterErrorPrefix}${field} ${message}`)
     this.name = 'ParameterError'
   }
 }

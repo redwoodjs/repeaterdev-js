@@ -4,8 +4,8 @@ export const create = `
     $enabled: Boolean!,
     $endpoint: String!,
     $verb: String!,
-    $headers: String!,
-    $body: String!,
+    $headers: String,
+    $body: String,
     $retryable: Boolean!
     $runAt: String!,
     $runEvery: String) {

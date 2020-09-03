@@ -1,20 +1,41 @@
-import { API_ENDPOINT, Client } from '../src/client'
+import { API_ENDPOINT, Client, requiredParams } from '../src/client'
+
+const DEFAULT_PARAMS = {
+  name: 'test-job',
+  verb: 'GET',
+  endpoint: 'https://test.host/function',
+  runAt: new Date(),
+  runEvery: 'P1D',
+}
+
+// properly clones an object
+const clone = (obj, merge = {}) => {
+  return { ...obj, ...merge }
+}
+
+// removes a single key from list of DEFAULT_PARAMS
+const paramsWithout = (name) => {
+  const params = clone(DEFAULT_PARAMS)
+  delete params[name]
+
+  return params
+}
 
 // constructor
 
-test('initializing without a token throws an error', () => {
+test('constructor() without a token throws an error', () => {
   expect(() => {
     new Client()
-  }).toThrow('Parameter error: token is required')
+  }).toThrow(`Parameter error: token ${requiredParams.token.required}`)
 })
 
-test('initializing with an empty string as a token throws an error', () => {
+test('constructor() with an empty string as a token throws an error', () => {
   expect(() => {
     new Client('')
-  }).toThrow('Parameter error: token is required')
+  }).toThrow(`Parameter error: token ${requiredParams.token.required}`)
 })
 
-test('initializing with a token does not throw', () => {
+test('constructor() with a token does not throw', () => {
   expect(() => {
     new Client('8ac0be4c06836527b63543ca70a84cb5')
   }).not.toThrow()
@@ -46,10 +67,68 @@ test('options.endpoint can be overridden', () => {
   ).toEqual('http://test.host')
 })
 
-test('#validateParams throws an error if name is blank', () => {
+test('enqueue() throws an error if name is blank', async () => {
   const client = new Client('abc')
 
-  expect(() => {
-    client.validateParams({})
-  }).toThrow(`Parameter error: name is required`)
+  await expect(client.enqueue({})).rejects.toThrow(
+    `Parameter error: name ${requiredParams.name.required}`
+  )
+})
+
+test('enqueue() throws an error if name is blank', async () => {
+  const client = new Client('abc')
+
+  await expect(client.enqueue(paramsWithout('name'))).rejects.toThrow(
+    `Parameter error: name ${requiredParams.name.required}`
+  )
+})
+
+test('enqueue() throws an error if verb is blank', async () => {
+  const client = new Client('abc')
+
+  await expect(client.enqueue(paramsWithout('verb'))).rejects.toThrow(
+    `Parameter error: verb ${requiredParams.verb.required}`
+  )
+})
+
+// test('enqueue() does not care if verb is lowercase', async () => {
+//   const client = new Client('abc')
+//   const params = clone(DEFAULT_PARAMS, { verb: 'get' })
+
+//   await expect(client.enqueue(params)).resolves.not.toThrow()
+// })
+
+test('enqueue() throws an error if endpoint is blank', async () => {
+  const client = new Client('abc')
+
+  await expect(client.enqueue(paramsWithout('endpoint'))).rejects.toThrow(
+    `Parameter error: endpoint ${requiredParams.endpoint.required}`
+  )
+})
+
+test('enqueue() throws an error if endpoint is not an URL', async () => {
+  const client = new Client('abc')
+  const params = clone(DEFAULT_PARAMS, { endpoint: 'mydomain.com' })
+
+  await expect(client.enqueue(params)).rejects.toThrow(
+    `Parameter error: endpoint ${requiredParams.endpoint.format}`
+  )
+})
+
+test('enqueue() throws an error if runAt is not a Date', async () => {
+  const client = new Client('abc')
+  const params = clone(DEFAULT_PARAMS, { runAt: 'foobar' })
+
+  await expect(client.enqueue(params)).rejects.toThrow(
+    `Parameter error: runAt ${requiredParams.runAt.format}`
+  )
+})
+
+test('enqueue() throws an error if runEvery is not a Duration', async () => {
+  const client = new Client('abc')
+  const params = clone(DEFAULT_PARAMS, { runEvery: 'foobar' })
+
+  await expect(client.enqueue(params)).rejects.toThrow(
+    `Parameter error: runEvery ${requiredParams.runEvery.format}`
+  )
 })
