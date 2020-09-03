@@ -2,21 +2,29 @@ import { GraphQLClient } from 'graphql-request'
 import { create } from './queries'
 import { CreateError, ParameterError } from './errors'
 
-export default class Client {
+export const API_ENDPOINT = 'https://api.repeater.dev/graphql'
+
+export class Client {
   DEFAULT_OPTIONS = {
     endpoint: 'https://api.repeater.dev/graphql',
   }
 
-  constructor(token, options) {
-    this.token = token
+  constructor(token, options = {}) {
+    this.setToken(token)
     this.setOptions(options)
     this.initClient()
   }
 
+  setToken(token) {
+    if (!token) throw new ParameterError('token', 'is required')
+
+    this.token = token
+  }
+
   setOptions(options) {
-    this.options = Object.apply(
+    this.options = Object.assign(
       {
-        endpoint: 'https://api.repeater.dev/graphql',
+        endpoint: API_ENDPOINT,
       },
       options
     )
