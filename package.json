@@ -2,9 +2,11 @@
   "name": "repeater-js",
   "version": "0.0.1",
   "description": "Official Javascript library for Repeater.dev",
-  "main": "src/index.js",
+  "main": "dist/index.js",
+  "files": ["dist"],
   "scripts": {
-    "test": "jest"
+    "build": "yarn babel src -d dist",
+    "test": "test"
   },
   "repository": "https://github.com/redwoodjs/repeater-js",
   "keywords": [
@@ -21,6 +23,15 @@
     "graphql-request": "^3.0.0"
   },
   "devDependencies": {
-    "jest": "^26.4.2"
+    "jest": "^26.4.2",
+    "@babel/cli": "^7.11.6",
+    "@babel/core": "^7.11.6",
+    "@babel/node": "^7.10.5",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/plugin-transform-runtime": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/runtime-corejs3": "^7.11.2",
+    "babel-jest": "^26.3.0",
+    "core-js": "^3.6.5"
   }
 }
