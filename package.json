@@ -1,0 +1,20 @@
+{
+  "name": "repeater-js",
+  "version": "0.0.1",
+  "description": "Official Javascript library for Repeater.dev",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": "https://github.com/redwoodjs/repeater-js",
+  "keywords": [
+    "repeater",
+    "jobs",
+    "background",
+    "scheduled",
+    "async",
+    "recurring"
+  ],
+  "author": "Rob Cameron",
+  "license": "MIT",
+}
