@@ -1,5 +1,5 @@
 {
-  "name": "repeater-js",
+  "name": "repeaterdev-js",
   "version": "0.0.1",
   "description": "Official Javascript library for Repeater.dev",
   "main": "dist/index.js",
@@ -10,7 +10,7 @@
     "build": "yarn babel src -d dist",
     "test": "jest"
   },
-  "repository": "https://github.com/redwoodjs/repeater-js",
+  "repository": "https://github.com/redwoodjs/repeaterdev-js",
   "keywords": [
     "repeater",
     "jobs",
