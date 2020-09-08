@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "test",
+			"script": "test -- ${file}",
 			"group": "test",
 			"problemMatcher": [],
 			"label": "npm: test",
