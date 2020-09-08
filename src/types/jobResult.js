@@ -1,11 +1,7 @@
-export default class JobResult {
-  constructor(data, { token, ...options }) {
-    this._initialize(data)
-  }
+import Type from './type'
 
-  job = () => {}
-
-  _initialize = (data) => {
+export default class JobResult extends Type {
+  parse = (data) => {
     this.status = data.status
     this.headers = data.headers
     this.body = data.body
@@ -16,7 +12,5 @@ export default class JobResult {
     this.updatedAt = data.updatedAt
   }
 
-  _reinitialize = (data) => {
-    this._initialize(data)
-  }
+  job = () => {}
 }
