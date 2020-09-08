@@ -8,7 +8,7 @@ import Type from './type'
 import JobResult from './jobResult'
 
 export default class Job extends Type {
-  parse = (data) => {
+  parse(data) {
     this.name = data.name
     this.enabled = data.enabled
     this.body = data.body
@@ -25,7 +25,7 @@ export default class Job extends Type {
     this.nextRunAt = data.nextRunAt
   }
 
-  update = async (params) => {
+  async update(params) {
     try {
       const data = await this._request(
         updateQuery,
@@ -38,7 +38,7 @@ export default class Job extends Type {
     }
   }
 
-  delete = async () => {
+  async delete() {
     try {
       await this.client.request(deleteQuery, { name: this.name })
       return this
@@ -47,14 +47,18 @@ export default class Job extends Type {
     }
   }
 
-  results = async () => {
+  async results() {
     try {
       const data = await this.client.request(resultsQuery, {
         jobName: this.name,
       })
       return data.jobResults.map(
         (result) =>
-          new JobResult(result, { token: this.token, ...this.options })
+          new JobResult(result, {
+            token: this.token,
+            jobName: this.name,
+            ...this.options,
+          })
       )
     } catch (error) {
       throw new ResultsError(error.message)

@@ -1,30 +1,30 @@
 import { graphQLClient } from '../graphql'
 
 export default class Type {
-  constructor(_data, { token, ...options }) {
+  constructor(data, { token, ...options }) {
     this.setToken(token)
     this.setOptions(options)
     this.parse(data)
     this._initClient()
   }
 
-  setToken = (token) => {
+  setToken(token) {
     this.token = token
   }
 
-  setOptions = (options) => {
+  setOptions(options) {
     this.options = options
   }
 
-  parse = (data) => {
-    throw new Error('Implement me')
+  parse(data) {
+    this.data = data
   }
 
-  _reinitialize = (data) => {
+  _reinitialize(data) {
     this.parse(data)
   }
 
-  _initClient = () => {
+  _initClient() {
     this.client = graphQLClient(this.token, this.options)
   }
 }

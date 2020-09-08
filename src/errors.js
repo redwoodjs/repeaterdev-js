@@ -16,6 +16,15 @@ export class JobsError extends RepeaterError {
   }
 }
 
+export const jobErrorPrefix = 'Could not retrieve job: '
+
+export class JobError extends RepeaterError {
+  constructor(message) {
+    super(`${jobErrorPrefix}${message}`)
+    this.name = 'JobError'
+  }
+}
+
 export const resultsErrorPrefix = 'Could not list job results: '
 
 export class ResultsError extends RepeaterError {

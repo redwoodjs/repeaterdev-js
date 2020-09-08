@@ -1,6 +1,6 @@
 import { graphQLClient } from './graphql'
 import { parse as durationParse } from 'iso8601-duration'
-import { create as createQuery, list as listQuery } from './queries'
+import { create as createQuery, jobs as jobsQuery } from './queries'
 import { JobsError, CreateError, ParameterError } from './errors'
 import { merge } from './utility'
 import Job from './types/job'
@@ -64,12 +64,14 @@ export class Repeater {
   }
 
   jobs = async () => {
-    try {
-      const data = await this._request(listQuery)
-      return this._initializeJobs(data.jobs)
-    } catch (error) {
-      return new JobsError(error.message)
-    }
+    // try {
+    const data = await this._request(jobsQuery)
+    return data.jobs.map((job) => {
+      return new Job(job, { token: this.token, ...this.options })
+    })
+    // } catch (error) {
+    //   return new JobsError(error.message)
+    // }
   }
 
   setToken = (token) => {
@@ -84,12 +86,6 @@ export class Repeater {
 
   setVariables = (params) => {
     this.variables = merge(this.variables, this._normalizeParams(params))
-  }
-
-  _initializeJobs = (jobs) => {
-    return jobs.map((job) => {
-      return new Job(job, { token: this.token, ...this.options })
-    })
   }
 
   _request = (query) => {

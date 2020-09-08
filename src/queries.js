@@ -1,6 +1,27 @@
-export const list = `
+export const jobs = `
   query JobsQuery {
     jobs {
+      name
+      enabled
+      body
+      endpoint
+      verb
+      headers
+      body
+      retryable
+      runAt
+      runEvery
+      createdAt
+      updatedAt
+      lastRunAt
+      nextRunAt
+    }
+  }
+`
+
+export const job = `
+  query JobsQuery($name: String!) {
+    job(name: $name) {
       name
       enabled
       body
