@@ -10,15 +10,30 @@ The official Javascript library for accessing the https://repeater.dev API.
 ## Usage
 
 ```javascript
-import Repeater from 'repeaterdev-js'
+import { Repeater } from 'repeaterdev-js'
 // or
-const Repeater = require('repeaterdev-js')
+const { Repeater } = require('repeaterdev-js')
 ```
 
 Initialize Repeater with an [Application Token](https://docs.repeater.dev/#getting-started):
 
 ```javascript
 const repeater = new Repeater('8ac0be4c06836527b63543ca70a84cb5')
+```
+
+### Listing Existing Jobs
+
+Return all currently available jobs for the application:
+
+```javascript
+repeater.jobs().then(jobs => {
+  console.log(jobs)
+})
+
+// or
+
+const jobs = await repeater.jobs()
+console.log(jobs)
 ```
 
 ### Enqueuing a Job
@@ -34,6 +49,15 @@ repeater.enqueue({
 }).then(job => {
   console.log(job)
 })
+
+// or
+
+const job = await repeater.enqueue({
+  name: 'sample-job',
+  endpoint: 'https://mysite.com/api/sample',
+  verb: 'POST'
+})
+console.log(job)
 ```
 
 In the example above the call to `enqueue` will be a Promise that resolves once the job is successfully
