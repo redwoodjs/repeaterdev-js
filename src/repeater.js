@@ -1,7 +1,11 @@
 import { graphQLClient } from './graphql'
 import { parse as durationParse } from 'iso8601-duration'
-import { create as createQuery, jobs as jobsQuery } from './queries'
-import { JobsError, CreateError, ParameterError } from './errors'
+import {
+  create as createQuery,
+  jobs as jobsQuery,
+  job as jobQuery,
+} from './queries'
+import { JobError, JobsError, CreateError, ParameterError } from './errors'
 import { merge } from './utility'
 import Job from './types/job'
 
@@ -51,52 +55,61 @@ export class Repeater {
     this._initClient()
   }
 
-  enqueue = async (params = {}) => {
+  async enqueue(params = {}) {
     this.setVariables(params)
     this.validate()
 
     try {
-      const response = await this._request(createQuery)
-      return new Job(response)
+      const data = await this.request(createQuery, this.variables)
+      return new Job(data.job, { token: this.token, ...this.options })
     } catch (error) {
       return new CreateError(error.message)
     }
   }
 
-  jobs = async () => {
-    // try {
-    const data = await this._request(jobsQuery)
-    return data.jobs.map((job) => {
-      return new Job(job, { token: this.token, ...this.options })
-    })
-    // } catch (error) {
-    //   return new JobsError(error.message)
-    // }
+  async jobs() {
+    try {
+      const data = await this.client.request(jobsQuery)
+      return data.jobs.map((job) => {
+        return new Job(job, { token: this.token, ...this.options })
+      })
+    } catch (error) {
+      return new JobsError(error.message)
+    }
   }
 
-  setToken = (token) => {
+  async job(name) {
+    try {
+      const data = await this.client.request(jobQuery, { name })
+      if (data.job) {
+        return new Job(data.job, { token: this.token, ...this.options })
+      } else {
+        return null
+      }
+    } catch (error) {
+      return new JobError(error.message)
+    }
+  }
+
+  setToken(token) {
     if (!token) throw new ParameterError('token', requiredParams.token.required)
 
     this.token = token
   }
 
-  setOptions = (options) => {
+  setOptions(options) {
     this.options = merge(DEFAULT_OPTIONS, options)
   }
 
-  setVariables = (params) => {
+  setVariables(params) {
     this.variables = merge(this.variables, this._normalizeParams(params))
   }
 
-  _request = (query) => {
-    return this.client.request(query, this.variables)
-  }
-
-  _initClient = () => {
+  _initClient() {
     this.client = graphQLClient(this.token, this.options)
   }
 
-  _initVariables = () => {
+  _initVariables() {
     this.variables = {
       enabled: true,
       retryable: true,
@@ -104,7 +117,7 @@ export class Repeater {
     }
   }
 
-  validate = () => {
+  validate() {
     if (!this.variables.name) {
       throw new ParameterError('name', requiredParams.name.required)
     }
@@ -132,7 +145,7 @@ export class Repeater {
     }
   }
 
-  _normalizeParams = (params) => {
+  _normalizeParams(params) {
     const jsonHeader = { 'Content-Type': 'application/json' }
 
     const normalizedParams = merge(this.variables, {

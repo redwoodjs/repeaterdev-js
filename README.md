@@ -69,7 +69,8 @@ record the result.
 
 ### Checking on Job Status
 
-You can check on the [results](https://docs.repeater.dev/#jobresults) of any jobs that have run:
+You can check on the [results](https://docs.repeater.dev/#jobresults) of any jobs that have run
+by calling `results()` an an instance of a job:
 
 ```javascript
 repeater.job('sample-job').then(job => {
