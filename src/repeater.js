@@ -1,3 +1,3 @@
-export const Repeater = (token, options) => {
+export default Repeater = (token, options) => {
   return new Client(apiKey, options)
 }
