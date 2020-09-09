@@ -1,5 +1,4 @@
 import { API_ENDPOINT, Repeater, requiredParams } from '../src/repeater'
-import { merge } from '../src/utility'
 import { GraphQLClient } from 'graphql-request'
 import MockDate from 'mockdate'
 import {
@@ -7,6 +6,8 @@ import {
   jobs as jobsQuery,
   job as jobQuery,
 } from '../src/queries'
+import Job from '../src/types/job'
+import { CreateError } from '../src/errors'
 
 // freeze the clock
 const now = new Date()
@@ -14,6 +15,9 @@ MockDate.set(now)
 
 // mock out graphql-request always
 jest.mock('graphql-request')
+
+// mock out Job always
+jest.mock('../src/types/job')
 
 const TOKEN = '8ac0be4c06836527b63543ca70a84cb5'
 const DEFAULT_PARAMS = {
@@ -34,6 +38,7 @@ const paramsWithout = (name) => {
 
 beforeEach(() => {
   GraphQLClient.mockClear()
+  Job.mockClear()
 })
 
 // constructor
@@ -86,163 +91,6 @@ test('options.endpoint can be overridden', () => {
   ).toEqual('http://test.host')
 })
 
-test('variables defaults `enabled` to true', () => {
-  expect(new Repeater(TOKEN).variables.enabled).toEqual(true)
-})
-
-test('variables defaults `retryable` to true', () => {
-  expect(new Repeater(TOKEN).variables.retryable).toEqual(true)
-})
-
-test('variables defaults `runAt` to now', () => {
-  const now = new Date()
-  MockDate.set(now)
-
-  expect(new Repeater(TOKEN).variables.runAt).toEqual(now)
-})
-// setVariables
-
-test('validate() throws an error if name is missing', () => {
-  const client = new Repeater('abc')
-  client.setVariables(paramsWithout('name'))
-
-  expect(() => client.validate()).toThrow(
-    `Parameter error: name ${requiredParams.name.required}`
-  )
-})
-
-test('validate() throws an error if verb is missing', () => {
-  const client = new Repeater('abc')
-  client.setVariables(paramsWithout('verb'))
-
-  expect(() => client.validate()).toThrow(
-    `Parameter error: verb ${requiredParams.verb.required}`
-  )
-})
-
-test('validate() throws an error if verb is not in the list of accepted values', () => {
-  const client = new Repeater('abc')
-  const params = merge(DEFAULT_PARAMS, { verb: 'FOO' })
-  client.setVariables(params)
-
-  expect(() => client.validate()).toThrow(
-    `Parameter error: verb ${requiredParams.verb.required}`
-  )
-})
-
-test('setVariables() throws an error if endpoint is missing', () => {
-  const client = new Repeater('abc')
-  client.setVariables(paramsWithout('endpoint'))
-
-  expect(() => client.validate()).toThrow(
-    `Parameter error: endpoint ${requiredParams.endpoint.required}`
-  )
-})
-
-test('setVariables() throws an error if endpoint is not an URL', () => {
-  const client = new Repeater('abc')
-  const params = merge(DEFAULT_PARAMS, { endpoint: 'mydomain.com' })
-  client.setVariables(params)
-
-  expect(() => client.validate()).toThrow(
-    `Parameter error: endpoint ${requiredParams.endpoint.format}`
-  )
-})
-
-test('setVariables() throws an error if runAt is not a Date', () => {
-  const client = new Repeater('abc')
-  const params = merge(DEFAULT_PARAMS, { runAt: 'foobar' })
-  client.setVariables(params)
-
-  expect(() => client.validate()).toThrow(
-    `Parameter error: runAt ${requiredParams.runAt.format}`
-  )
-})
-
-test('setVariables() throws an error if runEvery is not a Duration', () => {
-  const client = new Repeater('abc')
-  const params = merge(DEFAULT_PARAMS, { runEvery: 'foobar' })
-  client.setVariables(params)
-
-  expect(() => client.validate()).toThrow(
-    `Parameter error: runEvery ${requiredParams.runEvery.format}`
-  )
-})
-
-test('setVariables() upcases the verb', () => {
-  const client = new Repeater('abc')
-  client.setVariables(merge(DEFAULT_PARAMS, { verb: 'post' }))
-
-  expect(client.variables.verb).toEqual('POST')
-})
-
-test('setVariables() stringifies headers', () => {
-  const client = new Repeater('abc')
-  client.setVariables(
-    merge(DEFAULT_PARAMS, { headers: { 'Content-Type': 'application/json' } })
-  )
-
-  expect(client.variables.headers).toEqual(
-    `{\"Content-Type\":\"application/json\"}`
-  )
-})
-
-test('setVariables() keeps body if present', () => {
-  const client = new Repeater('abc')
-  client.setVariables(merge(DEFAULT_PARAMS, { body: 'foo=bar' }))
-
-  expect(client.variables.body).toEqual('foo=bar')
-})
-
-test('setVariables() sets body to stringified json if json params is present', () => {
-  const client = new Repeater('abc')
-  client.setVariables(merge(DEFAULT_PARAMS, { json: { foo: 'bar' } }))
-
-  expect(client.variables.body).toEqual(`{\"foo\":\"bar\"}`)
-})
-
-test('setVariables() adds Content-Type header if json param present', () => {
-  const client = new Repeater('abc')
-  client.setVariables(merge(DEFAULT_PARAMS, { json: { foo: 'bar' } }))
-
-  expect(client.variables.headers).toEqual(
-    `{\"Content-Type\":\"application/json\"}`
-  )
-})
-
-test('setVariables() adds Content-Type header to existing headers if json param present', () => {
-  const client = new Repeater('abc')
-  client.setVariables(
-    merge(DEFAULT_PARAMS, { headers: { 'X-Foo': 'bar' }, json: { foo: 'bar' } })
-  )
-
-  expect(client.variables.headers).toEqual(
-    `{\"X-Foo\":\"bar\",\"Content-Type\":\"application/json\"}`
-  )
-})
-
-test('setVariables() stringifies headers', () => {
-  const client = new Repeater('abc')
-  client.setVariables(merge(DEFAULT_PARAMS, { headers: { 'X-Foo': 'bar' } }))
-
-  expect(client.variables.headers).toEqual(`{\"X-Foo\":\"bar\"}`)
-})
-
-test('setVariables() can override boolean values', () => {
-  const client = new Repeater('abc')
-  client.setVariables(merge(DEFAULT_PARAMS, { enabled: false }))
-
-  expect(client.variables.enabled).toEqual(false)
-})
-
-test('setVariables() called multiple times overrides existing values', () => {
-  const client = new Repeater('abc')
-  client.setVariables(merge(DEFAULT_PARAMS, { headers: { 'X-Foo': 'bar' } }))
-  client.setVariables({ headers: { 'X-Baz': 'qux' } })
-
-  expect(client.variables.headers).toEqual(`{\"X-Baz\":\"qux\"}`)
-})
-
 test('jobs() makes a `jobsQuery` graphQL call', () => {
   const client = new Repeater(TOKEN)
   const graphQLInstance = GraphQLClient.mock.instances[0]
@@ -263,6 +111,9 @@ test('job() makes a `jobQuery` graphQL call', () => {
   })
 })
 
+// enabled defaults to `true`
+// retryable defaults to `true`
+// runAt defaults to `new Date`
 test('enqueue() makes a `createJob` graphQL call including default variables', () => {
   const client = new Repeater(TOKEN)
   const graphQLInstance = GraphQLClient.mock.instances[0]
@@ -277,11 +128,114 @@ test('enqueue() makes a `createJob` graphQL call including default variables', (
   })
 })
 
-// test('enqueue() returns an instance of Job', () => {
-//   const client = new Repeater(TOKEN)
-//   const graphQLInstance = GraphQLClient.mock.instances[0]
-//   client.enqueue(DEFAULT_PARAMS)
-//   const request = graphQLInstance.request
+test('enqueue() upcases the verb', () => {
+  const client = new Repeater(TOKEN)
+  const graphQLInstance = GraphQLClient.mock.instances[0]
 
-//   expect(request).toEqual('abc')
+  client.enqueue({ verb: 'get' })
+
+  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
+    enabled: true,
+    retryable: true,
+    runAt: now,
+    verb: 'GET',
+  })
+})
+
+test('enqueue() keeps body if present', () => {
+  const client = new Repeater(TOKEN)
+  const graphQLInstance = GraphQLClient.mock.instances[0]
+
+  client.enqueue({ body: 'foo=bar' })
+
+  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
+    enabled: true,
+    retryable: true,
+    runAt: now,
+    body: 'foo=bar',
+  })
+})
+
+test('enqueue() sets body to stringified json if json params is present', () => {
+  const client = new Repeater(TOKEN)
+  const graphQLInstance = GraphQLClient.mock.instances[0]
+
+  client.enqueue({ json: { foo: 'bar' } })
+
+  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
+    enabled: true,
+    retryable: true,
+    runAt: now,
+    body: '{"foo":"bar"}',
+    headers: '{"Content-Type":"application/json"}',
+  })
+})
+
+test('enqueue() adds Content-Type header to existing headers if json param present', () => {
+  const client = new Repeater(TOKEN)
+  const graphQLInstance = GraphQLClient.mock.instances[0]
+
+  client.enqueue({ headers: { 'X-Foo': 'bar' }, json: { foo: 'bar' } })
+
+  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
+    enabled: true,
+    retryable: true,
+    runAt: now,
+    body: '{"foo":"bar"}',
+    headers: `{\"X-Foo\":\"bar\",\"Content-Type\":\"application/json\"}`,
+  })
+})
+
+test('enqueue() can override boolean values', () => {
+  const client = new Repeater(TOKEN)
+  const graphQLInstance = GraphQLClient.mock.instances[0]
+
+  client.enqueue({ retryable: false })
+
+  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
+    enabled: true,
+    retryable: false,
+    runAt: now,
+  })
+})
+
+// the console.log() displays the expected return but the Job is never
+// initialized?
+
+// test('enqueue() initializes a Job with the response', () => {
+//   GraphQLClient.mockImplementation(() => {
+//     return {
+//       request: () => {
+//         return new Promise((resolve) => {
+//           resolve({
+//             data: {
+//               job: { name: 'test-job' },
+//             },
+//           })
+//         })
+//       },
+//     }
+//   })
+//   const client = new Repeater(TOKEN)
+
+//   client.client.request().then((r) => console.log(r))
+
+//   client.enqueue({ name: 'test-job' })
+
+//   expect(Job).toHaveBeenCalledWith({ name: 'test-job' }, { token: TOKEN })
+// })
+
+// Can't get this error to raise
+
+// test('enqueue() handles errors', () => {
+//   GraphQLClient.mockImplementation(() => {
+//     return {
+//       request: () => {
+//         throw new CreateError('Foobar')
+//       },
+//     }
+//   })
+//   const client = new Repeater(TOKEN)
+
+//   expect(() => client.enqueue({ name: 'test-job' })).toThrow()
 // })

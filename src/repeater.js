@@ -51,23 +51,21 @@ export class Repeater {
   constructor(token, options = {}) {
     this.setToken(token)
     this.setOptions(options)
-    this._initVariables()
     this._initClient()
-    this.defaultVariables = {
+  }
+
+  async enqueue(params = {}) {
+    const defaultVariables = {
       enabled: true,
       retryable: true,
       runAt: new Date(),
     }
-  }
-
-  async enqueue(params = {}) {
-    // this.setVariables(params)
-    // this.validate()
-    const variables = merge(this.defaultVariables, params)
+    const variables = this._normalizeParams(merge(defaultVariables, params))
 
     try {
       const data = await this.client.request(createQuery, variables)
-      return new Job(data.job, { token: this.token, ...this.options })
+      const job = new Job(data.job, { token: this.token, ...this.options })
+      return job
     } catch (error) {
       return new CreateError(error.message)
     }
@@ -115,56 +113,10 @@ export class Repeater {
     this.client = graphQLClient(this.token, this.options)
   }
 
-  _initVariables() {
-    this.variables = {
-      enabled: true,
-      retryable: true,
-      runAt: new Date(),
-    }
-  }
-
-  validate() {
-    if (!this.variables.name) {
-      throw new ParameterError('name', requiredParams.name.required)
-    }
-    if (!VERBS.includes(this.variables?.verb?.toUpperCase())) {
-      throw new ParameterError('verb', requiredParams.verb.required)
-    }
-    if (!this.variables.endpoint) {
-      throw new ParameterError('endpoint', requiredParams.endpoint.required)
-    }
-    if (!this.variables.endpoint.match(/^https?:\/\//)) {
-      throw new ParameterError('endpoint', requiredParams.endpoint.format)
-    }
-    if (
-      this.variables.runAt &&
-      Object.prototype.toString.call(this.variables.runAt) !== '[object Date]'
-    ) {
-      throw new ParameterError('runAt', requiredParams.runAt.format)
-    }
-    if (this.variables.runEvery) {
-      try {
-        durationParse(this.variables.runEvery)
-      } catch (e) {
-        throw new ParameterError('runEvery', requiredParams.runEvery.format)
-      }
-    }
-  }
-
   _normalizeParams(params) {
     const jsonHeader = { 'Content-Type': 'application/json' }
 
-    const normalizedParams = merge(this.variables, {
-      name: params.name,
-      enabled: params.enabled,
-      endpoint: params.endpoint,
-      verb: params.verb,
-      headers: params.headers,
-      body: params.body,
-      retryable: params.retryable,
-      runAt: params.runAt,
-      runEvery: params.runEvery,
-    })
+    const normalizedParams = params
 
     normalizedParams.verb = normalizedParams.verb?.toUpperCase()
 
@@ -174,6 +126,7 @@ export class Repeater {
         normalizedParams.headers = normalizedParams.headers
           ? merge(normalizedParams.headers, jsonHeader)
           : jsonHeader
+        delete normalizedParams.json
       } else {
         delete normalizedParams.body
       }
