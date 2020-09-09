@@ -1,13 +1,18 @@
 import { API_ENDPOINT, Repeater, requiredParams } from '../src/repeater'
 import { merge } from '../src/utility'
-import MockDate from 'mockdate'
 import { GraphQLClient } from 'graphql-request'
+import MockDate from 'mockdate'
 import {
   create as createQuery,
   jobs as jobsQuery,
   job as jobQuery,
 } from '../src/queries'
 
+// freeze the clock
+const now = new Date()
+MockDate.set(now)
+
+// mock out graphql-request always
 jest.mock('graphql-request')
 
 const TOKEN = '8ac0be4c06836527b63543ca70a84cb5'
@@ -29,10 +34,6 @@ const paramsWithout = (name) => {
 
 beforeEach(() => {
   GraphQLClient.mockClear()
-})
-
-afterEach(() => {
-  MockDate.reset()
 })
 
 // constructor
@@ -262,17 +263,19 @@ test('job() makes a `jobQuery` graphQL call', () => {
   })
 })
 
-// test('enqueue() makes a `createJob` graphQL call', () => {
-//   const client = new Repeater(TOKEN)
-//   const graphQLInstance = GraphQLClient.mock.instances[0]
+test('enqueue() makes a `createJob` graphQL call including default variables', () => {
+  const client = new Repeater(TOKEN)
+  const graphQLInstance = GraphQLClient.mock.instances[0]
 
-//   client.enqueue(DEFAULT_PARAMS)
+  client.enqueue({ endpoint: 'http://test.host' })
 
-//   expect(graphQLInstance.request).toHaveBeenCalledWith(
-//     createQuery,
-//     client.variables
-//   )
-// })
+  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
+    enabled: true,
+    retryable: true,
+    runAt: now,
+    endpoint: 'http://test.host',
+  })
+})
 
 // test('enqueue() returns an instance of Job', () => {
 //   const client = new Repeater(TOKEN)

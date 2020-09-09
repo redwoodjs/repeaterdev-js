@@ -53,14 +53,20 @@ export class Repeater {
     this.setOptions(options)
     this._initVariables()
     this._initClient()
+    this.defaultVariables = {
+      enabled: true,
+      retryable: true,
+      runAt: new Date(),
+    }
   }
 
   async enqueue(params = {}) {
-    this.setVariables(params)
-    this.validate()
+    // this.setVariables(params)
+    // this.validate()
+    const variables = merge(this.defaultVariables, params)
 
     try {
-      const data = await this.request(createQuery, this.variables)
+      const data = await this.client.request(createQuery, variables)
       return new Job(data.job, { token: this.token, ...this.options })
     } catch (error) {
       return new CreateError(error.message)
