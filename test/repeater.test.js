@@ -111,23 +111,6 @@ test('job() makes a `jobQuery` graphQL call', () => {
   })
 })
 
-// enabled defaults to `true`
-// retryable defaults to `true`
-// runAt defaults to `new Date`
-test('enqueue() makes a `createJob` graphQL call including default variables', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-
-  client.enqueue({ endpoint: 'http://test.host' })
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
-    enabled: true,
-    retryable: true,
-    runAt: now,
-    endpoint: 'http://test.host',
-  })
-})
-
 test('enqueue() upcases the verb', () => {
   const client = new Repeater(TOKEN)
   const graphQLInstance = GraphQLClient.mock.instances[0]
@@ -196,6 +179,23 @@ test('enqueue() can override boolean values', () => {
     enabled: true,
     retryable: false,
     runAt: now,
+  })
+})
+
+// enabled defaults to `true`
+// retryable defaults to `true`
+// runAt defaults to `new Date`
+test('enqueue() makes a `createJob` graphQL call including default variables', () => {
+  const client = new Repeater(TOKEN)
+  const graphQLInstance = GraphQLClient.mock.instances[0]
+
+  client.enqueue({ endpoint: 'http://test.host' })
+
+  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
+    enabled: true,
+    retryable: true,
+    runAt: now,
+    endpoint: 'http://test.host',
   })
 })
 
