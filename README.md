@@ -64,8 +64,7 @@ In the example above the call to `enqueue` will be a Promise that resolves once 
 enqueued. Note the actual running of the job is asynchronous—you will need to query separately
 to check on the status of an existing job (see [Retrieving Job Results](#retrieving-jobresults)).
 
-When the job runs, Repeater will issue a POST request to `https://mysite.com/api/sample` and
-record the result.
+In the above example, when the job runs, Repeater will issue an HTTP POST request to `https://mysite.com/api/sample` and record the [result](#retrieving-jobresults).
 
 #### Parameter Notes
 
@@ -135,11 +134,9 @@ You can check on the [results](https://docs.repeater.dev/#jobresults) of any job
 by calling `results()` an an instance of a job:
 
 ```javascript
-repeater.job('sample-job').then(job => {
-  return job.results()
-}).then(results => {
-  console.log(job.results)
-})
+repeater.job('sample-job')
+  .then(job => job.results())
+  .then(results => console.log(job.results))
 
 // or
 
