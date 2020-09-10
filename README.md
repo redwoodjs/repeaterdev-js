@@ -29,7 +29,8 @@ import { Repeater } from 'repeaterdev-js'
 const { Repeater } = require('repeaterdev-js')
 ```
 
-Initialize Repeater with an [Application Token](https://docs.repeater.dev/#getting-started):
+Initialize `Repeater` with an [Application Token](https://docs.repeater.dev/#getting-started)
+and get back an instance that you'll use to make all calls:
 
 ```javascript
 const repeater = new Repeater('8ac0be4c06836527b63543ca70a84cb5')
