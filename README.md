@@ -155,3 +155,11 @@ job.isDeleted // => true
 
 Once a job has been deleted, calls to `update()`, `delete()` or `results()` will throw
 a `ReadOnlyError`.
+
+## Bug Reports
+
+Open an [issue](https://github.com/redwoodjs/repeaterdev-js/issues)!
+
+## Contributing
+
+Open a [pull request](https://github.com/redwoodjs/repeaterdev-js/pulls)!
