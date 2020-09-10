@@ -114,6 +114,9 @@ test('update() called on a deleted job throws an error', async () => {
   await expect(job.update()).rejects.toThrow(ReadOnlyError)
 })
 
+// The mock must be sticking around after running somehow because
+// uncommenting this breaks 2 following tests
+
 // test('update() handles errors', async () => {
 //   const mockResultsResponse = jest.fn()
 //   GraphQLClient.prototype.request = mockResultsResponse
