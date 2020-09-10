@@ -8,7 +8,7 @@ serverless function that sends that email, then have Repeater issue an HTTP call
 that function in 24 hours.
 
 ## Prequisites
-a
+
 You'll need an account at https://repeater.dev and at least one [Application](https://docs.repeater.dev/#getting-started).
 
 ## Installation
