@@ -2,6 +2,11 @@
 
 The official Javascript library for accessing the https://repeater.dev API.
 
+Repeater.dev makes it easy for Jamstack applications to perform asynchronous/background
+and recurring job processing. Need to send an email 24 hours after signup? Create a
+serverless function that sends that email, then have Repeater issue an HTTP call to
+that function in 24 hours.
+
 ## Installation
 
     yarn add repeaterdev-js
@@ -77,6 +82,12 @@ const job = await repeater.enqueue({
   body: "{\"data\":{\"user\":{\"id\":434}}}"
 }
 ```
+
+`runAt` should be a Javascript Date. It will be converted to UTC before the job is enqueued.
+If you don't specify a `runAt` when calling `enqueue()` then the job will be set to run now,
+meaning as soon as the Repeater.dev processing queue can get to it.
+
+By default, `enabled` and `retryable` are set to `true`.
 
 ### Listing Existing Jobs
 
