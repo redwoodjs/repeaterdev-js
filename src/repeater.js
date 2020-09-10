@@ -64,8 +64,10 @@ export class Repeater {
 
     try {
       const data = await this.client.request(createQuery, variables)
-      const job = new Job(data.job, { token: this.token, ...this.options })
-      return job
+      return new Job(data.createJob, {
+        token: this.token,
+        ...this.options,
+      })
     } catch (error) {
       return new CreateError(error.message)
     }

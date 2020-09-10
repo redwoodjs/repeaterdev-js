@@ -49,7 +49,7 @@ export default class Job extends Type {
         updateQuery,
         Object.assign({ name: this.name }, params)
       )
-      this.parse(data.job)
+      this.parse(data.updateJob)
       return this
     } catch (error) {
       return new UpdateError(error.message)

@@ -199,43 +199,18 @@ test('enqueue() makes a `createJob` graphQL call including default variables', (
   })
 })
 
-// the console.log() displays the expected return but the Job is never
-// initialized?
+// Returned job is a mock for some reason???
 
-// test('enqueue() initializes a Job with the response', () => {
-//   GraphQLClient.mockImplementation(() => {
-//     return {
-//       request: () => {
-//         return new Promise((resolve) => {
-//           resolve({
-//             data: {
-//               job: { name: 'test-job' },
-//             },
-//           })
-//         })
-//       },
-//     }
-//   })
+// test('enqueue() returns the job that was created', async () => {
+//   const mockResultsResponse = jest.fn()
+//   GraphQLClient.prototype.request = mockResultsResponse
+//   mockResultsResponse.mockReturnValue(
+//     Promise.resolve({ createJob: { name: 'test-job', verb: 'GET' } })
+//   )
 //   const client = new Repeater(TOKEN)
+//   const job = await client.enqueue({ name: 'test-job', verb: 'GET' })
+//   console.info(job)
 
-//   client.client.request().then((r) => console.log(r))
-
-//   client.enqueue({ name: 'test-job' })
-
-//   expect(Job).toHaveBeenCalledWith({ name: 'test-job' }, { token: TOKEN })
-// })
-
-// Can't get this error to raise
-
-// test('enqueue() handles errors', () => {
-//   GraphQLClient.mockImplementation(() => {
-//     return {
-//       request: () => {
-//         throw new CreateError('Foobar')
-//       },
-//     }
-//   })
-//   const client = new Repeater(TOKEN)
-
-//   expect(() => client.enqueue({ name: 'test-job' })).toThrow()
+//   expect(job.name).toEqual('test-job')
+//   expect(job.verb).toEqual('GET')
 // })

@@ -82,7 +82,7 @@ test('update() updates the properties of the job', async () => {
   const mockResultsResponse = jest.fn()
   GraphQLClient.prototype.request = mockResultsResponse
   mockResultsResponse.mockReturnValue(
-    Promise.resolve({ job: { name: 'test-job', verb: 'GET' } })
+    Promise.resolve({ updateJob: { name: 'test-job', verb: 'GET' } })
   )
   const job = new Job(
     { name: 'test-job', verb: 'POST' },
