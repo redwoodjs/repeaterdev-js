@@ -163,7 +163,11 @@ const job = await repeater.job('sample-job')
 await job.update({ runAt: '2022-01-01T12:00:00Z' })
 ```
 
-After running, the job instance will be updated with the new value:
+When updating a job, any pending job runs are canceled and rescheduled
+(if the job is `enabled`) based on the values in `runAt` and `runEvery`.
+
+After running, the job instance will be updated with the new value(s) that were
+just saved:
 
 ```javascript
 const job = await repeater.job('sample-job')
@@ -171,6 +175,9 @@ job.verb // => 'GET'
 await job.update({ verb: 'POST' })
 job.verb // => 'POST'
 ```
+
+> Note that you cannot rename an existing job. If you really need to give a job
+> a new name you'll need to delete the existing job and create a new one.
 
 ### Deleting a Job
 
