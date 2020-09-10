@@ -21,21 +21,6 @@ Initialize Repeater with an [Application Token](https://docs.repeater.dev/#getti
 const repeater = new Repeater('8ac0be4c06836527b63543ca70a84cb5')
 ```
 
-### Listing Existing Jobs
-
-Return all currently available jobs for the application:
-
-```javascript
-repeater.jobs().then(jobs => {
-  console.log(jobs)
-})
-
-// or
-
-const jobs = await repeater.jobs()
-console.log(jobs)
-```
-
 ### Enqueuing a Job
 
 You can enqueue [jobs](https://docs.repeater.dev/#jobs) and tell them when to run. If you
@@ -67,14 +52,44 @@ to check on the status of an existing job (see [Checking on Job Status](#checkin
 When the job runs, Repeater will issue a POST request to `https://mysite.com/api/sample` and
 record the result.
 
-### Checking on Job Status
+### Listing Existing Jobs
+
+Return all currently available jobs for the application:
+
+```javascript
+repeater.jobs().then(jobs => {
+  console.log(jobs)
+})
+
+// or
+
+const jobs = await repeater.jobs()
+console.log(jobs)
+```
+
+### Retrieving a Single Job
+
+Return a single job by name:
+
+```javascript
+repeater.job('job-name').then(job => {
+  console.log(job)
+})
+
+// or
+
+const job = await repeater.job('job-name')
+console.log(job)
+```
+
+### Retrieving JobResults
 
 You can check on the [results](https://docs.repeater.dev/#jobresults) of any jobs that have run
 by calling `results()` an an instance of a job:
 
 ```javascript
 repeater.job('sample-job').then(job => {
-  job.results()
+  return job.results()
 }).then(results => {
   console.log(job.results)
 })
@@ -101,7 +116,16 @@ repeater.job('sample-job').then(job => {
 // or
 
 const job = await repeater.job('sample-job')
-job.update({ runAt: '2022-01-01T12:00:00Z' })
+await job.update({ runAt: '2022-01-01T12:00:00Z' })
+```
+
+After running, the job instance will be updated with the new value:
+
+```javascript
+const job = await repeater.job('sample-job')
+job.verb // => 'GET'
+await job.update({ verb: 'POST' })
+job.verb // => 'POST'
 ```
 
 ### Deleting a Job
@@ -116,7 +140,7 @@ repeater.job('sample-job').then(job => {
 // or
 
 const job = await repeater.job('sample-job')
-job.delete()
+await job.delete()
 ```
 
 You can tell if a Job instance represents a deleted job by checking
@@ -125,9 +149,9 @@ the `isDeleted` property:
 ```javascript
 const job = await repeater.job('sample-job')
 job.isDeleted // => false
-job.delete()
+await job.delete()
 job.isDeleted // => true
 ```
 
 Once a job has been deleted, calls to `update()`, `delete()` or `results()` will throw
-an error.
+a `ReadOnlyError`.
