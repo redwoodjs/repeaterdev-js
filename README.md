@@ -62,7 +62,7 @@ console.log(job)
 
 In the example above the call to `enqueue` will be a Promise that resolves once the job is successfully
 enqueued. Note the actual running of the job is asynchronous—you will need to query separately
-to check on the status of an existing job (see [Checking on Job Status](#checking-on-job-status)).
+to check on the status of an existing job (see [Retrieving Job Results](#retrieving-jobresults)).
 
 When the job runs, Repeater will issue a POST request to `https://mysite.com/api/sample` and
 record the result.
