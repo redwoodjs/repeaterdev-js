@@ -1,6 +1,6 @@
 {
   "name": "repeaterdev-js",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Official Javascript library for Repeater.dev",
   "main": "dist/index.js",
   "files": [
