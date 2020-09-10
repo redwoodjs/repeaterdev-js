@@ -7,6 +7,10 @@ and recurring job processing. Need to send an email 24 hours after signup? Creat
 serverless function that sends that email, then have Repeater issue an HTTP call to
 that function in 24 hours.
 
+## Prequisites
+a
+You'll need an account at https://repeater.dev and at least one [Application](https://docs.repeater.dev/#getting-started).
+
 ## Installation
 
     yarn add repeaterdev-js
