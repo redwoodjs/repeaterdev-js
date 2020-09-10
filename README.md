@@ -14,6 +14,9 @@ You'll need an account at https://repeater.dev and at least one [Application](ht
 ## Installation
 
     yarn add repeaterdev-js
+
+Or
+
     npm install repeaterdev-js
 
 ## Usage
