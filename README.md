@@ -38,7 +38,7 @@ console.log(jobs)
 
 ### Enqueuing a Job
 
-Now you can enqueue [jobs](https://docs.repeater.dev/#jobs) and tell them when to run. If you
+You can enqueue [jobs](https://docs.repeater.dev/#jobs) and tell them when to run. If you
 leave `runAt` blank then the job will run as soon as possible:
 
 ```javascript
@@ -118,3 +118,16 @@ repeater.job('sample-job').then(job => {
 const job = await repeater.job('sample-job')
 job.delete()
 ```
+
+You can tell if a Job instance represents a deleted job by checking
+the `isDeleted` property:
+
+```javascript
+const job = await repeater.job('sample-job')
+job.isDeleted // => false
+job.delete()
+job.isDeleted // => true
+```
+
+Once a job has been deleted, calls to `update()`, `delete()` or `results()` will throw
+an error.

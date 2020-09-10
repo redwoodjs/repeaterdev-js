@@ -34,3 +34,9 @@ test('constructor() initializes the GraphQL client', () => {
     headers: { authorization: `Bearer abc` },
   })
 })
+
+test('constructor() defaults the isDeleted property to false', () => {
+  const type = new Type({}, { token: 'abc', endpoint: 'http://test.host' })
+
+  expect(type.isDeleted).toEqual(false)
+})

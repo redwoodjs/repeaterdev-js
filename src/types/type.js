@@ -6,6 +6,7 @@ export default class Type {
     this.setOptions(options)
     this.parse(data)
     this._initClient()
+    this.isDeleted = false
   }
 
   setToken(token) {
@@ -18,10 +19,6 @@ export default class Type {
 
   parse(data) {
     this.data = data
-  }
-
-  _reinitialize(data) {
-    this.parse(data)
   }
 
   _initClient() {

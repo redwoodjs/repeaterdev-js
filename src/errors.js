@@ -7,6 +7,13 @@ export class RepeaterError extends Error {
   }
 }
 
+export class ReadOnlyError extends RepeaterError {
+  constructor() {
+    super('Job has been deleted and is read-only')
+    this.name = 'ReadOnlyError'
+  }
+}
+
 export const jobsErrorPrefix = 'Could not list jobs: '
 
 export class JobsError extends RepeaterError {
