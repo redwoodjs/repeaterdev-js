@@ -104,6 +104,16 @@ test('update() does not set isDeleted flag', async () => {
   expect(job.isDeleted).toEqual(false)
 })
 
+test('update() called on a deleted job throws an error', async () => {
+  const job = new Job(
+    { name: 'test-job' },
+    { token: 'abc', endpoint: 'http://test.host' }
+  )
+  await job.delete()
+
+  await expect(job.update()).rejects.toThrow(ReadOnlyError)
+})
+
 // test('update() handles errors', async () => {
 //   const mockResultsResponse = jest.fn()
 //   GraphQLClient.prototype.request = mockResultsResponse
@@ -139,16 +149,6 @@ test('delete() sets the isDeleted property to true', async () => {
   expect(job.isDeleted).toEqual(false)
   await job.delete()
   expect(job.isDeleted).toEqual(true)
-})
-
-test('update() called on a deleted job throws an error', async () => {
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
-  await job.delete()
-
-  await expect(job.update()).rejects.toThrow(ReadOnlyError)
 })
 
 test('delete() called on a deleted job throws an error', async () => {
