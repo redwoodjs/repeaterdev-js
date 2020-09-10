@@ -43,7 +43,7 @@ test('parses job data on initialization', () => {
   expect(job.body).toEqual('foo=bar')
   expect(job.endpoint).toEqual('http://test.host')
   expect(job.verb).toEqual('POST')
-  expect(job.headers).toEqual('{"Content-Type":"text/plain"}')
+  expect(job.headers).toEqual({ 'Content-Type': 'text/plain' })
   expect(job.retryable).toEqual(false)
   expect(job.runAt).toEqual(new Date('2020-01-01T12:00:00Z'))
   expect(job.runEvery).toEqual('P1D')

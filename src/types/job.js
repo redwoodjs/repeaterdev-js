@@ -21,7 +21,7 @@ export default class Job extends Type {
       ? data.endpoint
       : this.endpoint
     this.verb = data.verb || this.verb
-    this.headers = data.headers || this.headers
+    this.headers = data.headers ? JSON.parse(data.headers) : this.headers
     this.retryable = data.hasOwnProperty('retryable')
       ? data.retryable
       : this.retryable
@@ -70,7 +70,7 @@ export default class Job extends Type {
 
   async results() {
     if (this.isDeleted) throw new ReadOnlyError()
-    
+
     try {
       const data = await this.client.request(resultsQuery, {
         jobName: this.name,

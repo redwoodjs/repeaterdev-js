@@ -11,13 +11,13 @@ export default class JobResult extends Type {
 
   parse(data) {
     this.status = data.status
-    this.headers = data.headers
+    this.headers = data.headers ? JSON.parse(data.headers) : null
     this.body = data.body
-    this.runAt = data.runAt
+    this.runAt = data.runAt ? new Date(data.runAt) : null
     this.run = data.run
     this.duration = data.duration
-    this.createdAt = data.createdAt
-    this.updatedAt = data.updatedAt
+    this.createdAt = data.createdAt ? new Date(data.createdAt) : null
+    this.updatedAt = data.updatedAt ? new Date(data.updatedAt) : null
   }
 
   async job() {
