@@ -52,6 +52,32 @@ to check on the status of an existing job (see [Checking on Job Status](#checkin
 When the job runs, Repeater will issue a POST request to `https://mysite.com/api/sample` and
 record the result.
 
+#### Parameter Notes
+
+For convenience, the `headers` property can be set as a JSON object. It will automatically be serialized to a string for you.
+
+`body` should be set as a string, but if you use the `json` key instead then the values will be serialized to a string automatically, and a `Content-Type: application/json` header will be added to `headers`:
+
+```javascript
+const job = await repeater.enqueue({
+  name: 'sample-job',
+  endpoint: 'https://mysite.com/api/sample',
+  verb: 'POST',
+  headers: { 'Authorization': 'Bearer ABCD1234' },
+  json: { data: { user: { id: 434 } } }
+})
+
+// variables set on GraphQL call become:
+
+{
+  name: "sample-job",
+  endpoint: "https://mysite.com/api/sample",
+  verb: "POST",
+  headers: "{\"Authorization\":\"Bearer ABCD1234\",\"Content-Type\":\"application/json\"}",
+  body: "{\"data\":{\"user\":{\"id\":434}}}"
+}
+```
+
 ### Listing Existing Jobs
 
 Return all currently available jobs for the application:
