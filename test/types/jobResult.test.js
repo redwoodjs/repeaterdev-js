@@ -12,7 +12,7 @@ beforeEach(() => {
 test('constructor() saves jobName to a property', () => {
   const jobResult = new JobResult({}, { jobName: 'test-job' })
 
-  expect(jobResult.jobName).toEqual('test-job')
+  expect(jobResult._jobName).toEqual('test-job')
 })
 
 test('parses jobResult data on initialization', () => {
@@ -80,8 +80,8 @@ test('job() returns a Job', async () => {
   const job = await result.job()
 
   expect(job.name).toEqual('test-job')
-  expect(job.token).toEqual('abc')
-  expect(job.options.endpoint).toEqual('http://test.host')
+  expect(job._token).toEqual('abc')
+  expect(job._options.endpoint).toEqual('http://test.host')
 })
 
 test('job() handles errors', async () => {

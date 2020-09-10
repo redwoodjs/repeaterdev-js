@@ -65,8 +65,8 @@ export class Repeater {
     try {
       const data = await this.client.request(createQuery, variables)
       return new Job(data.createJob, {
-        token: this.token,
-        ...this.options,
+        token: this._token,
+        ...this._options,
       })
     } catch (error) {
       return new CreateError(error.message)
@@ -77,7 +77,7 @@ export class Repeater {
     try {
       const data = await this.client.request(jobsQuery)
       return data.jobs.map((job) => {
-        return new Job(job, { token: this.token, ...this.options })
+        return new Job(job, { token: this._token, ...this._options })
       })
     } catch (error) {
       return new JobsError(error.message)
@@ -88,7 +88,7 @@ export class Repeater {
     try {
       const data = await this.client.request(jobQuery, { name })
       if (data.job) {
-        return new Job(data.job, { token: this.token, ...this.options })
+        return new Job(data.job, { token: this._token, ...this._options })
       } else {
         return null
       }
@@ -100,11 +100,11 @@ export class Repeater {
   setToken(token) {
     if (!token) throw new ParameterError('token', requiredParams.token.required)
 
-    this.token = token
+    this._token = token
   }
 
   setOptions(options) {
-    this.options = merge(DEFAULT_OPTIONS, options)
+    this._options = merge(DEFAULT_OPTIONS, options)
   }
 
   setVariables(params) {
@@ -112,7 +112,7 @@ export class Repeater {
   }
 
   _initClient() {
-    this.client = graphQLClient(this.token, this.options)
+    this.client = graphQLClient(this._token, this._options)
   }
 
   _normalizeParams(params) {

@@ -79,9 +79,9 @@ export default class Job extends Type {
       return data.jobResults.map(
         (result) =>
           new JobResult(result, {
-            token: this.token,
+            token: this._token,
             jobName: this.name,
-            ...this.options,
+            ...this._options,
           })
       )
     } catch (error) {

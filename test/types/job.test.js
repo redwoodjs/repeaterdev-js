@@ -199,9 +199,9 @@ test('results() returns an array of JobResults', async () => {
   expect(results.length).toEqual(2)
   expect(results[0].status).toEqual(200)
   expect(results[1].status).toEqual(500)
-  expect(results[0].token).toEqual('abc')
-  expect(results[0].jobName).toEqual('test-job')
-  expect(results[0].options.endpoint).toEqual('http://test.host')
+  expect(results[0]._token).toEqual('abc')
+  expect(results[0]._jobName).toEqual('test-job')
+  expect(results[0]._options.endpoint).toEqual('http://test.host')
 })
 
 test('results() called on a deleted job throws an error', async () => {

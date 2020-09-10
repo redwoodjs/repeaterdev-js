@@ -6,7 +6,7 @@ import Job from './job'
 export default class JobResult extends Type {
   constructor(data, { jobName, ...options }) {
     super(data, options)
-    this.jobName = jobName
+    this._jobName = jobName
   }
 
   parse(data) {
@@ -23,9 +23,9 @@ export default class JobResult extends Type {
   async job() {
     try {
       const data = await this.client.request(jobQuery, {
-        name: this.jobName,
+        name: this._jobName,
       })
-      return new Job(data.job, { token: this.token, ...this.options })
+      return new Job(data.job, { token: this._token, ...this._options })
     } catch (error) {
       throw new JobError(error.message)
     }

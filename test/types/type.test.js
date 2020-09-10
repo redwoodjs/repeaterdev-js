@@ -11,14 +11,14 @@ beforeEach(() => {
 test('constructor() saves the given token', () => {
   const type = new Type({}, { token: 'abc' })
 
-  expect(type.token).toEqual('abc')
-  expect(type.options).toEqual({})
+  expect(type._token).toEqual('abc')
+  expect(type._options).toEqual({})
 })
 
 test('constructor() saves any additional options', () => {
   const type = new Type({}, { token: 'abc', foo: 'bar' })
 
-  expect(type.options).toEqual({ foo: 'bar' })
+  expect(type._options).toEqual({ foo: 'bar' })
 })
 
 test('constructor() saves the passed data', () => {

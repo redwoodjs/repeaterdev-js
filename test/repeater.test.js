@@ -71,23 +71,23 @@ test('constructor() initializes GraphQLClient with endpoint and auth header', ()
 
 // parameters
 
-test('token is available as a parameter', () => {
-  expect(new Repeater(TOKEN).token).toEqual(TOKEN)
+test('_token is available as a parameter', () => {
+  expect(new Repeater(TOKEN)._token).toEqual(TOKEN)
 })
 
-test('options are available as a parameter', () => {
-  expect(new Repeater(TOKEN, { foo: 'bar' }).options.foo).toEqual('bar')
+test('_options are available as a parameter', () => {
+  expect(new Repeater(TOKEN, { foo: 'bar' })._options.foo).toEqual('bar')
 })
 
-test('options sets a default endpoint', () => {
-  expect(new Repeater(TOKEN).options.endpoint).toEqual(API_ENDPOINT)
+test('_options sets a default endpoint', () => {
+  expect(new Repeater(TOKEN)._options.endpoint).toEqual(API_ENDPOINT)
 })
 
 test('options.endpoint can be overridden', () => {
   expect(
     new Repeater(TOKEN, {
       endpoint: 'http://test.host',
-    }).options.endpoint
+    })._options.endpoint
   ).toEqual('http://test.host')
 })
 

@@ -10,11 +10,11 @@ export default class Type {
   }
 
   setToken(token) {
-    this.token = token
+    this._token = token
   }
 
   setOptions(options) {
-    this.options = options
+    this._options = options
   }
 
   parse(data) {
@@ -22,6 +22,6 @@ export default class Type {
   }
 
   _initClient() {
-    this.client = graphQLClient(this.token, this.options)
+    this.client = graphQLClient(this._token, this._options)
   }
 }
