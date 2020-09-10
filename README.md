@@ -23,7 +23,9 @@ Or
 
 ```javascript
 import { Repeater } from 'repeaterdev-js'
+
 // or
+
 const { Repeater } = require('repeaterdev-js')
 ```
 
