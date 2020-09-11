@@ -3,12 +3,7 @@ import {
   destroy as deleteQuery,
   results as resultsQuery,
 } from '../queries'
-import {
-  UpdateError,
-  DeleteError,
-  ResultsError,
-  ReadOnlyError,
-} from '../errors'
+import { GraphQLError, ReadOnlyError } from '../errors'
 import Type from './type'
 import JobResult from './jobResult'
 
@@ -52,7 +47,7 @@ export default class Job extends Type {
       this.parse(data.updateJob)
       return this
     } catch (error) {
-      return new UpdateError(error.message)
+      throw new GraphQLError(error.message)
     }
   }
 
@@ -64,7 +59,7 @@ export default class Job extends Type {
       this.isDeleted = true
       return this
     } catch (error) {
-      throw new DeleteError(error.message)
+      throw new GraphQLError(error.message)
     }
   }
 
@@ -85,7 +80,7 @@ export default class Job extends Type {
           })
       )
     } catch (error) {
-      throw new ResultsError(error.message)
+      throw new GraphQLError(error.message)
     }
   }
 }

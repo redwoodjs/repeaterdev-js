@@ -1,21 +1,18 @@
 import JobResult from '../../src/types/jobResult'
 import { JobError } from '../../src/errors'
 import { endpoint, token } from '../testHelper'
-import { setupServer } from 'msw/node'
-import { singleJob, jobError } from '../responses'
-
-const server = setupServer()
+import { mswServer, singleJobResponse, jobErrorResponse } from '../responses'
 
 beforeAll(() => {
-  server.listen()
+  mswServer.listen()
 })
 
 afterEach(() => {
-  server.resetHandlers()
+  mswServer.resetHandlers()
 })
 
 afterAll(() => {
-  server.close()
+  mswServer.close()
 })
 
 test('constructor() saves jobName to a property', () => {
@@ -58,7 +55,7 @@ test('sets blank dates to null', () => {
 })
 
 test('job() returns a Job', async () => {
-  server.resetHandlers(singleJob)
+  mswServer.resetHandlers(singleJobResponse)
 
   const result = new JobResult(
     { status: 200 },
@@ -72,7 +69,7 @@ test('job() returns a Job', async () => {
 })
 
 test('job() handles errors', async () => {
-  server.resetHandlers(jobError)
+  mswServer.resetHandlers(jobErrorResponse)
 
   const result = new JobResult({}, { jobName: 'test-job', token, endpoint })
 

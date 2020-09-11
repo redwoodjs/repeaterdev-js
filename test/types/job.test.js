@@ -1,21 +1,26 @@
 import Job from '../../src/types/job'
+import { GraphQLError, ReadOnlyError } from '../../src/errors'
+import { endpoint, token } from '../testHelper'
 import {
-  update as updateQuery,
-  destroy as deleteQuery,
-  results as resultsQuery,
-} from '../../src/queries'
-import { GraphQLClient, ClientError } from 'graphql-request'
-import {
-  ResultsError,
-  UpdateError,
-  DeleteError,
-  ReadOnlyError,
-} from '../../src/errors'
+  mswServer,
+  updateJobResponse,
+  updateJobErrorResponse,
+  deleteJobResponse,
+  deleteJobErrorResponse,
+  jobResultsResponse,
+  jobResultsErrorResponse,
+} from '../responses'
 
-jest.mock('graphql-request')
+beforeAll(() => {
+  mswServer.listen()
+})
 
-beforeEach(() => {
-  GraphQLClient.mockClear()
+afterEach(() => {
+  mswServer.resetHandlers()
+})
+
+afterAll(() => {
+  mswServer.close()
 })
 
 test('parses job data on initialization', () => {
@@ -35,7 +40,7 @@ test('parses job data on initialization', () => {
       lastRunAt: '2020-01-04T02:00:00Z',
       nextRunAt: '2020-01-05T03:00:00Z',
     },
-    { token: 'abc', foo: 'bar' }
+    { foo: 'bar', token, endpoint }
   )
 
   expect(job.name).toEqual('test-job')
@@ -54,7 +59,7 @@ test('parses job data on initialization', () => {
 })
 
 test('sets blank dates to null', () => {
-  const job = new Job({}, { token: 'abc', foo: 'bar' })
+  const job = new Job({}, { foo: 'bar', token, endpoint })
 
   expect(job.runAt).toEqual(null)
   expect(job.createdAt).toEqual(null)
@@ -63,31 +68,9 @@ test('sets blank dates to null', () => {
   expect(job.nextRunAt).toEqual(null)
 })
 
-test('update() makes a `updateJob` graphQL call', async () => {
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-
-  const updateResult = await job.update({ verb: 'GET' })
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(updateQuery, {
-    name: 'test-job',
-    verb: 'GET',
-  })
-})
-
 test('update() updates the properties of the job', async () => {
-  const mockResultsResponse = jest.fn()
-  GraphQLClient.prototype.request = mockResultsResponse
-  mockResultsResponse.mockReturnValue(
-    Promise.resolve({ updateJob: { name: 'test-job', verb: 'GET' } })
-  )
-  const job = new Job(
-    { name: 'test-job', verb: 'POST' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
+  mswServer.resetHandlers(updateJobResponse)
+  const job = new Job({ name: 'test-job', verb: 'POST' }, { token, endpoint })
 
   expect(job.verb).toEqual('POST')
   await job.update({ verb: 'GET' })
@@ -95,59 +78,32 @@ test('update() updates the properties of the job', async () => {
 })
 
 test('update() does not set isDeleted flag', async () => {
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
+  mswServer.resetHandlers(updateJobResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
+
   expect(job.isDeleted).toEqual(false)
   await job.update({ verb: 'GET' })
   expect(job.isDeleted).toEqual(false)
 })
 
 test('update() called on a deleted job throws an error', async () => {
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
+  mswServer.resetHandlers(deleteJobResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
   await job.delete()
 
   await expect(job.update()).rejects.toThrow(ReadOnlyError)
 })
 
-// The mock must be sticking around after running somehow because
-// uncommenting this breaks 2 following tests
+test('update() throws custom error if GraphQL error occurs', async () => {
+  mswServer.resetHandlers(updateJobErrorResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
 
-// test('update() handles errors', async () => {
-//   const mockResultsResponse = jest.fn()
-//   GraphQLClient.prototype.request = mockResultsResponse
-//   mockResultsResponse.mockReturnValue(Promise.reject(new ClientError('Foobar')))
-//   const job = new Job(
-//     { name: 'test-job' },
-//     { token: 'abc', endpoint: 'http://test.host' }
-//   )
-
-//   await expect(job.update({ verb: 'GET' })).rejects.toThrow(UpdateError)
-// })
-
-test('delete() makes a `deleteJob` graphQL call', async () => {
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-
-  await job.delete()
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(deleteQuery, {
-    name: 'test-job',
-  })
+  await expect(job.update()).rejects.toThrow(GraphQLError)
 })
 
 test('delete() sets the isDeleted property to true', async () => {
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
+  mswServer.resetHandlers(deleteJobResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
 
   expect(job.isDeleted).toEqual(false)
   await job.delete()
@@ -155,73 +111,51 @@ test('delete() sets the isDeleted property to true', async () => {
 })
 
 test('delete() called on a deleted job throws an error', async () => {
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
+  mswServer.resetHandlers(deleteJobResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
   await job.delete()
 
   await expect(job.delete()).rejects.toThrow(ReadOnlyError)
 })
 
-test('results() makes a `resultsQuery` graphQL call', async () => {
-  const mockResultsResponse = jest.fn()
-  GraphQLClient.prototype.request = mockResultsResponse
-  mockResultsResponse.mockReturnValue(
-    Promise.resolve({ jobResults: [{ status: 200 }] })
-  )
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
+test('delete() throws custom error if GraphQL error occurs', async () => {
+  mswServer.resetHandlers(deleteJobErrorResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
 
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-  await job.results()
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(resultsQuery, {
-    jobName: 'test-job',
-  })
+  await expect(job.delete()).rejects.toThrow(GraphQLError)
 })
 
 test('results() returns an array of JobResults', async () => {
-  const mockResultsResponse = jest.fn()
-  GraphQLClient.prototype.request = mockResultsResponse
-  mockResultsResponse.mockReturnValue(
-    Promise.resolve({ jobResults: [{ status: 200 }, { status: 500 }] })
-  )
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
-
+  mswServer.resetHandlers(jobResultsResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
   const results = await job.results()
 
   expect(results.length).toEqual(2)
   expect(results[0].status).toEqual(200)
   expect(results[1].status).toEqual(500)
-  expect(results[0]._token).toEqual('abc')
+})
+
+test('results() passes through token, endpoint and jobName to JobResult instances', async () => {
+  mswServer.resetHandlers(jobResultsResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
+  const results = await job.results()
+
+  expect(results[0]._token).toEqual(token)
   expect(results[0]._jobName).toEqual('test-job')
-  expect(results[0]._options.endpoint).toEqual('http://test.host')
+  expect(results[0]._options.endpoint).toEqual(endpoint)
 })
 
 test('results() called on a deleted job throws an error', async () => {
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
+  mswServer.resetHandlers(deleteJobResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
   await job.delete()
 
   await expect(job.results()).rejects.toThrow(ReadOnlyError)
 })
 
-test('results() handles GraphQL errors', async () => {
-  const mockResultsResponse = jest.fn()
-  GraphQLClient.prototype.request = mockResultsResponse
-  mockResultsResponse.mockReturnValue(Promise.reject(new ClientError('Foobar')))
-  const job = new Job(
-    { name: 'test-job' },
-    { token: 'abc', endpoint: 'http://test.host' }
-  )
+test('results() throws custom error if GraphQL error occurs', async () => {
+  mswServer.resetHandlers(jobResultsErrorResponse)
+  const job = new Job({ name: 'test-job' }, { token, endpoint })
 
-  await expect(job.results()).rejects.toThrow(ResultsError)
+  await expect(job.results()).rejects.toThrow(GraphQLError)
 })
