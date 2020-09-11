@@ -20,7 +20,7 @@ export const jobs = `
 `
 
 export const job = `
-  query JobsQuery($name: String!) {
+  query JobQuery($name: String!) {
     job(name: $name) {
       name
       enabled
