@@ -1,5 +1,5 @@
 import { job as jobQuery } from '../queries'
-import { JobError } from '../errors'
+import { GraphQLError } from '../errors'
 import Type from './type'
 import Job from './job'
 
@@ -27,7 +27,7 @@ export default class JobResult extends Type {
       })
       return new Job(data.job, { token: this._token, ...this._options })
     } catch (error) {
-      throw new JobError(error.message)
+      throw new GraphQLError(error.message)
     }
   }
 }

@@ -1,5 +1,5 @@
 import JobResult from '../../src/types/jobResult'
-import { JobError } from '../../src/errors'
+import { GraphQLError } from '../../src/errors'
 import { endpoint, token } from '../testHelper'
 import { mswServer, singleJobResponse, jobErrorResponse } from '../responses'
 
@@ -73,5 +73,5 @@ test('job() handles errors', async () => {
 
   const result = new JobResult({}, { jobName: 'test-job', token, endpoint })
 
-  await expect(result.job()).rejects.toThrow(JobError)
+  await expect(result.job()).rejects.toThrow(GraphQLError)
 })
