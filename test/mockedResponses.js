@@ -6,6 +6,47 @@ const localhost = graphql.link(endpoint)
 
 export const mswServer = setupServer()
 
+export const jobsResponse = localhost.query('JobsQuery', (req, res, ctx) => {
+  return res(
+    ctx.data({
+      jobs: [
+        {
+          __typename: 'Job',
+          name: 'test-job-1',
+          enabled: true,
+          body: 'foo=bar',
+          endpoint: 'http://test.host/api/test',
+          verb: 'GET',
+          headers: '{"Content-Type":"text/plain"}',
+          retryable: true,
+          runAt: '2020-01-01T00:00:00Z',
+          runEvery: null,
+          createdAt: '2020-01-02T01:00:00Z',
+          updatedAt: '2020-01-03T02:00:00Z',
+          lastRunAt: null,
+          nextRunAt: null,
+        },
+        {
+          __typename: 'Job',
+          name: 'test-job-2',
+          enabled: true,
+          body: 'foo=bar',
+          endpoint: 'http://test.host/api/test',
+          verb: 'GET',
+          headers: '{"Content-Type":"text/plain"}',
+          retryable: true,
+          runAt: '2020-02-01T00:00:00Z',
+          runEvery: null,
+          createdAt: '2020-02-02T01:00:00Z',
+          updatedAt: '2020-02-03T02:00:00Z',
+          lastRunAt: null,
+          nextRunAt: null,
+        },
+      ],
+    })
+  )
+})
+
 export const singleJobResponse = localhost.query(
   'JobQuery',
   (req, res, ctx) => {
@@ -31,6 +72,14 @@ export const singleJobResponse = localhost.query(
     )
   }
 )
+
+export const nullJobResponse = localhost.query('JobQuery', (req, res, ctx) => {
+  return res(
+    ctx.data({
+      job: null,
+    })
+  )
+})
 
 export const recurringJobResponse = localhost.query(
   'JobQuery',
@@ -67,6 +116,62 @@ export const jobErrorResponse = localhost.query('JobQuery', (req, res, ctx) => {
     ])
   )
 })
+
+export const jobsErrorResponse = localhost.query(
+  'JobsQuery',
+  (req, res, ctx) => {
+    return res(
+      ctx.errors([
+        {
+          message: 'Mocked error response',
+        },
+      ])
+    )
+  }
+)
+
+export const createJobResponse = localhost.mutation(
+  'CreateJobMutation',
+  (req, res, ctx) => {
+    return res(
+      ctx.data({
+        createJob: {
+          __typename: 'Job',
+          name: req.variables.name,
+          enabled: req.variables.hasOwnProperty('enabled')
+            ? req.variables.enabled
+            : true,
+          body: req.variables.body,
+          endpoint: req.variables.endpoint,
+          verb: req.variables.verb,
+          headers: req.variables.headers,
+          retryable: req.variables.hasOwnProperty('retryable')
+            ? req.variables.retryable
+            : true,
+          runAt: req.variables.runAt,
+          runEvery: req.variables.runAt,
+          createdAt: '2020-01-02T01:00:00Z',
+          updatedAt: '2020-01-03T02:00:00Z',
+          lastRunAt: null,
+          nextRunAt: null,
+        },
+      })
+    )
+  }
+)
+
+export const createJobErrorResponse = localhost.mutation(
+  'CreateJobMutation',
+  (req, res, ctx) => {
+    return res(
+      ctx.errors([
+        {
+          message: 'Mocked error response',
+        },
+      ])
+    )
+  }
+)
 
 export const updateJobResponse = localhost.mutation(
   'UpdateJobMutation',

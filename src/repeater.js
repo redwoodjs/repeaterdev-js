@@ -5,7 +5,7 @@ import {
   jobs as jobsQuery,
   job as jobQuery,
 } from './queries'
-import { JobError, JobsError, CreateError, ParameterError } from './errors'
+import { GraphQLError, ParameterError } from './errors'
 import { merge } from './utility'
 import Job from './types/job'
 
@@ -69,7 +69,7 @@ export class Repeater {
         ...this._options,
       })
     } catch (error) {
-      return new CreateError(error.message)
+      throw new GraphQLError(error.message)
     }
   }
 
@@ -80,7 +80,7 @@ export class Repeater {
         return new Job(job, { token: this._token, ...this._options })
       })
     } catch (error) {
-      return new JobsError(error.message)
+      throw new GraphQLError(error.message)
     }
   }
 
@@ -93,7 +93,7 @@ export class Repeater {
         return null
       }
     } catch (error) {
-      return new JobError(error.message)
+      throw new GraphQLError(error.message)
     }
   }
 

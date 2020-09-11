@@ -1,44 +1,32 @@
 import { API_ENDPOINT, Repeater, requiredParams } from '../src/repeater'
-import { GraphQLClient } from 'graphql-request'
 import MockDate from 'mockdate'
+import { GraphQLError, ParameterError } from '../src/errors'
+import { token, endpoint } from './testHelper'
 import {
-  create as createQuery,
-  jobs as jobsQuery,
-  job as jobQuery,
-} from '../src/queries'
-import Job from '../src/types/job'
-import { CreateError } from '../src/errors'
+  mswServer,
+  singleJobResponse,
+  jobErrorResponse,
+  nullJobResponse,
+  jobsResponse,
+  jobsErrorResponse,
+  createJobResponse,
+  createJobErrorResponse,
+} from './mockedResponses'
 
-// freeze the clock
 const now = new Date()
-MockDate.set(now)
 
-// mock out graphql-request always
-jest.mock('graphql-request')
+beforeAll(() => {
+  mswServer.listen()
+  MockDate.set(now)
+})
 
-// mock out Job always
-jest.mock('../src/types/job')
+afterEach(() => {
+  mswServer.resetHandlers()
+})
 
-const TOKEN = '8ac0be4c06836527b63543ca70a84cb5'
-const DEFAULT_PARAMS = {
-  name: 'test-job',
-  verb: 'GET',
-  endpoint: 'https://test.host/function',
-  runAt: new Date(),
-  runEvery: 'P1D',
-}
-
-// removes a single key from list of DEFAULT_PARAMS
-const paramsWithout = (name) => {
-  const params = { ...DEFAULT_PARAMS }
-  delete params[name]
-
-  return params
-}
-
-beforeEach(() => {
-  GraphQLClient.mockClear()
-  Job.mockClear()
+afterAll(() => {
+  MockDate.reset()
+  mswServer.close()
 })
 
 // constructor
@@ -46,171 +34,188 @@ beforeEach(() => {
 test('constructor() without a token throws an error', () => {
   expect(() => {
     new Repeater()
-  }).toThrow(`Parameter error: token ${requiredParams.token.required}`)
+  }).toThrow(ParameterError)
 })
 
 test('constructor() with an empty string as a token throws an error', () => {
   expect(() => {
     new Repeater('')
-  }).toThrow(`Parameter error: token ${requiredParams.token.required}`)
+  }).toThrow(ParameterError)
 })
 
 test('constructor() with a token does not throw', () => {
-  expect(() => new Repeater(TOKEN)).not.toThrow()
-})
-
-test('constructor() initializes GraphQLClient with endpoint and auth header', () => {
-  expect(GraphQLClient).not.toHaveBeenCalled()
-
-  new Repeater(TOKEN)
-
-  expect(GraphQLClient).toHaveBeenCalledWith(API_ENDPOINT, {
-    headers: { authorization: `Bearer ${TOKEN}` },
-  })
+  expect(() => new Repeater(token)).not.toThrow()
 })
 
 // parameters
 
 test('_token is available as a parameter', () => {
-  expect(new Repeater(TOKEN)._token).toEqual(TOKEN)
+  expect(new Repeater(token)._token).toEqual(token)
 })
 
 test('_options are available as a parameter', () => {
-  expect(new Repeater(TOKEN, { foo: 'bar' })._options.foo).toEqual('bar')
+  expect(new Repeater(token, { foo: 'bar' })._options.foo).toEqual('bar')
 })
 
 test('_options sets a default endpoint', () => {
-  expect(new Repeater(TOKEN)._options.endpoint).toEqual(API_ENDPOINT)
+  expect(new Repeater(token)._options.endpoint).toEqual(API_ENDPOINT)
 })
 
 test('options.endpoint can be overridden', () => {
-  expect(
-    new Repeater(TOKEN, {
-      endpoint: 'http://test.host',
-    })._options.endpoint
-  ).toEqual('http://test.host')
+  expect(new Repeater(token, { endpoint })._options.endpoint).toEqual(endpoint)
 })
 
-test('jobs() makes a `jobsQuery` graphQL call', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
+test('jobs() returns an array of jobs', async () => {
+  mswServer.resetHandlers(jobsResponse)
+  const client = new Repeater(token, { endpoint })
+  const jobs = await client.jobs()
 
-  client.jobs()
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(jobsQuery)
+  expect(jobs.length).toEqual(2)
+  expect(jobs[0].name).toEqual('test-job-1')
+  expect(jobs[1].name).toEqual('test-job-2')
 })
 
-test('job() makes a `jobQuery` graphQL call', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
+test('jobs() throws a custom error', async () => {
+  mswServer.resetHandlers(jobsErrorResponse)
+  const client = new Repeater(token, { endpoint })
 
-  client.job('test-job')
+  await expect(client.jobs()).rejects.toThrow(GraphQLError)
+})
 
-  expect(graphQLInstance.request).toHaveBeenCalledWith(jobQuery, {
-    name: 'test-job',
+test('job() returns a job with the given name', async () => {
+  mswServer.resetHandlers(singleJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const job = await client.job('test-job-1')
+})
+
+test('job() returns null if job not found', async () => {
+  mswServer.resetHandlers(nullJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const job = await client.job('test-job-99')
+
+  expect(job).toEqual(null)
+})
+
+test('job() throws a custom error', async () => {
+  mswServer.resetHandlers(jobErrorResponse)
+  const client = new Repeater(token, { endpoint })
+
+  await expect(client.job('test-job-1')).rejects.toThrow(GraphQLError)
+})
+
+test('enqueue() upcases the verb', async () => {
+  mswServer.resetHandlers(createJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const random = Math.round(Math.random() * 100)
+  const job = await client.enqueue({
+    name: `test-job-${random}`,
+    verb: 'get',
+    endpoint: `http://test.host/api/${random}`,
+  })
+
+  expect(job.verb).toEqual('GET')
+})
+
+test('enqueue() keeps body if present', async () => {
+  mswServer.resetHandlers(createJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const random = Math.round(Math.random() * 100)
+  const job = await client.enqueue({
+    name: `test-job-${random}`,
+    verb: 'get',
+    endpoint: `http://test.host/api/${random}`,
+    body: `foo=${random}`,
+  })
+
+  expect(job.body).toEqual(`foo=${random}`)
+})
+
+test('enqueue() sets body to stringified json if json params is present', async () => {
+  mswServer.resetHandlers(createJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const random = Math.round(Math.random() * 100)
+  const job = await client.enqueue({
+    name: `test-job-${random}`,
+    verb: 'get',
+    endpoint: `http://test.host/api/${random}`,
+    json: { foo: random.toString() },
+  })
+
+  expect(job.body).toEqual(`{"foo":"${random}"}`)
+})
+
+test('enqueue() adds Content-Type header to empty headers if json param present', async () => {
+  mswServer.resetHandlers(createJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const random = Math.round(Math.random() * 100)
+  const job = await client.enqueue({
+    name: `test-job-${random}`,
+    verb: 'get',
+    endpoint: `http://test.host/api/${random}`,
+    json: { foo: random.toString() },
+  })
+
+  expect(job.headers).toEqual({
+    'Content-Type': 'application/json',
   })
 })
 
-test('enqueue() upcases the verb', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
+test('enqueue() adds Content-Type header to existing headers if json param present', async () => {
+  mswServer.resetHandlers(createJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const random = Math.round(Math.random() * 100)
+  const job = await client.enqueue({
+    name: `test-job-${random}`,
+    verb: 'get',
+    endpoint: `http://test.host/api/${random}`,
+    json: { foo: random.toString() },
+    headers: { 'X-Foo': 'bar' },
+  })
 
-  client.enqueue({ verb: 'get' })
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
-    enabled: true,
-    retryable: true,
-    runAt: now,
-    verb: 'GET',
+  expect(job.headers).toEqual({
+    'X-Foo': 'bar',
+    'Content-Type': 'application/json',
   })
 })
 
-test('enqueue() keeps body if present', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-
-  client.enqueue({ body: 'foo=bar' })
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
-    enabled: true,
-    retryable: true,
-    runAt: now,
-    body: 'foo=bar',
-  })
-})
-
-test('enqueue() sets body to stringified json if json params is present', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-
-  client.enqueue({ json: { foo: 'bar' } })
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
-    enabled: true,
-    retryable: true,
-    runAt: now,
-    body: '{"foo":"bar"}',
-    headers: '{"Content-Type":"application/json"}',
-  })
-})
-
-test('enqueue() adds Content-Type header to existing headers if json param present', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-
-  client.enqueue({ headers: { 'X-Foo': 'bar' }, json: { foo: 'bar' } })
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
-    enabled: true,
-    retryable: true,
-    runAt: now,
-    body: '{"foo":"bar"}',
-    headers: `{\"X-Foo\":\"bar\",\"Content-Type\":\"application/json\"}`,
-  })
-})
-
-test('enqueue() can override boolean values', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-
-  client.enqueue({ retryable: false })
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
-    enabled: true,
+test('enqueue() can override boolean values', async () => {
+  mswServer.resetHandlers(createJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const random = Math.round(Math.random() * 100)
+  const job = await client.enqueue({
+    name: `test-job-${random}`,
+    verb: 'get',
+    endpoint: `http://test.host/api/${random}`,
     retryable: false,
-    runAt: now,
   })
+
+  expect(job.retryable).toEqual(false)
 })
 
-// enabled defaults to `true`
-// retryable defaults to `true`
-// runAt defaults to `new Date`
-test('enqueue() makes a `createJob` graphQL call including default variables', () => {
-  const client = new Repeater(TOKEN)
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-
-  client.enqueue({ endpoint: 'http://test.host' })
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(createQuery, {
-    enabled: true,
-    retryable: true,
-    runAt: now,
-    endpoint: 'http://test.host',
+test('enqueue() sets some default values', async () => {
+  mswServer.resetHandlers(createJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const random = Math.round(Math.random() * 100)
+  const job = await client.enqueue({
+    name: `test-job-${random}`,
+    verb: 'get',
+    endpoint: `http://test.host/api/${random}`,
   })
+
+  expect(job.enabled).toEqual(true)
+  expect(job.retryable).toEqual(true)
+  expect(job.runAt).toEqual(now)
 })
 
-// Returned job is a mock for some reason???
+test('enqueue() throw custom error', async () => {
+  mswServer.resetHandlers(createJobErrorResponse)
+  const client = new Repeater(token, { endpoint })
 
-// test('enqueue() returns the job that was created', async () => {
-//   const mockResultsResponse = jest.fn()
-//   GraphQLClient.prototype.request = mockResultsResponse
-//   mockResultsResponse.mockReturnValue(
-//     Promise.resolve({ createJob: { name: 'test-job', verb: 'GET' } })
-//   )
-//   const client = new Repeater(TOKEN)
-//   const job = await client.enqueue({ name: 'test-job', verb: 'GET' })
-//   console.info(job)
-
-//   expect(job.name).toEqual('test-job')
-//   expect(job.verb).toEqual('GET')
-// })
+  await expect(
+    client.enqueue({
+      name: 'test-job-1',
+      verb: 'get',
+      endpoint: 'http://test.host/api',
+    })
+  ).rejects.toThrow(GraphQLError)
+})
