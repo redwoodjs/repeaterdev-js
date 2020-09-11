@@ -1,4 +1,3 @@
-import { API_ENDPOINT } from '../../src/repeater'
 import { GraphQLClient } from 'graphql-request'
 import Type from '../../src/types/type'
 

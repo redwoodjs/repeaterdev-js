@@ -1,7 +1,11 @@
 import JobResult from '../../src/types/jobResult'
 import { GraphQLError } from '../../src/errors'
 import { endpoint, token } from '../testHelper'
-import { mswServer, singleJobResponse, jobErrorResponse } from '../responses'
+import {
+  mswServer,
+  singleJobResponse,
+  jobErrorResponse,
+} from '../mockedResponses'
 
 beforeAll(() => {
   mswServer.listen()

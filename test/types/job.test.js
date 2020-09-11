@@ -9,7 +9,7 @@ import {
   deleteJobErrorResponse,
   jobResultsResponse,
   jobResultsErrorResponse,
-} from '../responses'
+} from '../mockedResponses'
 
 beforeAll(() => {
   mswServer.listen()
