@@ -1,12 +1,21 @@
 import JobResult from '../../src/types/jobResult'
-import { job as jobQuery } from '../../src/queries'
-import { GraphQLClient, ClientError } from 'graphql-request'
 import { JobError } from '../../src/errors'
+import { endpoint, token } from '../testHelper'
+import { setupServer } from 'msw/node'
+import { singleJob, jobError } from '../responses'
 
-jest.mock('graphql-request')
+const server = setupServer()
 
-beforeEach(() => {
-  GraphQLClient.mockClear()
+beforeAll(() => {
+  server.listen()
+})
+
+afterEach(() => {
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
 })
 
 test('constructor() saves jobName to a property', () => {
@@ -48,51 +57,24 @@ test('sets blank dates to null', () => {
   expect(result.updatedAt).toEqual(null)
 })
 
-test('job() makes a `jobQuery` graphQL call', async () => {
-  const mockResultsResponse = jest.fn()
-  GraphQLClient.prototype.request = mockResultsResponse
-  mockResultsResponse.mockReturnValue(
-    Promise.resolve({ job: { name: 'test-job' } })
-  )
-  const result = new JobResult(
-    {},
-    { jobName: 'test-job', token: 'abc', endpoint: 'http://test.host' }
-  )
-  const graphQLInstance = GraphQLClient.mock.instances[0]
-  await result.job()
-
-  expect(graphQLInstance.request).toHaveBeenCalledWith(jobQuery, {
-    name: 'test-job',
-  })
-})
-
 test('job() returns a Job', async () => {
-  const mockResultsResponse = jest.fn()
-  GraphQLClient.prototype.request = mockResultsResponse
-  mockResultsResponse.mockReturnValue(
-    Promise.resolve({ job: { name: 'test-job' } })
-  )
-  const result = new JobResult(
-    {},
-    { jobName: 'test-job', token: 'abc', endpoint: 'http://test.host' }
-  )
+  server.resetHandlers(singleJob)
 
+  const result = new JobResult(
+    { status: 200 },
+    { jobName: 'test-job', token, endpoint }
+  )
   const job = await result.job()
 
   expect(job.name).toEqual('test-job')
-  expect(job._token).toEqual('abc')
-  expect(job._options.endpoint).toEqual('http://test.host')
+  expect(job._token).toEqual(token)
+  expect(job._options.endpoint).toEqual(endpoint)
 })
 
 test('job() handles errors', async () => {
-  const mockResultsResponse = jest.fn()
-  GraphQLClient.prototype.request = mockResultsResponse
-  mockResultsResponse.mockReturnValue(Promise.reject(new ClientError('Foobar')))
-  const result = new JobResult(
-    {},
-    { jobName: 'test-job', token: 'abc', endpoint: 'http://test.host' }
-  )
-  const graphQLInstance = GraphQLClient.mock.instances[0]
+  server.resetHandlers(jobError)
+
+  const result = new JobResult({}, { jobName: 'test-job', token, endpoint })
 
   await expect(result.job()).rejects.toThrow(JobError)
 })
