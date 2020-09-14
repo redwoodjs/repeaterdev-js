@@ -5,6 +5,7 @@ import { token, endpoint } from './testHelper'
 import {
   mswServer,
   singleJobResponse,
+  updateJobResponse,
   jobErrorResponse,
   nullJobResponse,
   jobsResponse,
@@ -218,4 +219,28 @@ test('enqueue() throw custom error', async () => {
       endpoint: 'http://test.host/api',
     })
   ).rejects.toThrow(GraphQLError)
+})
+
+test('enqueueOrUpdate() enqueues a new job if the name does not exist', async () => {
+  mswServer.resetHandlers(nullJobResponse, createJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const job = await client.enqueueOrUpdate({
+    name: 'test-job-1',
+    verb: 'get',
+    endpoint: 'http://test.host/api',
+  })
+
+  expect(job.name).toEqual('test-job-1')
+})
+
+test('enqueueOrUpdate() updates an existing job if it exists', async () => {
+  mswServer.resetHandlers(singleJobResponse, updateJobResponse)
+  const client = new Repeater(token, { endpoint })
+  const job = await client.enqueueOrUpdate({
+    name: 'test-job-1',
+    verb: 'get',
+    endpoint: 'http://test.host/api',
+  })
+
+  expect(job.name).toEqual('test-job-1')
 })

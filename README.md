@@ -179,6 +179,41 @@ job.verb // => 'POST'
 > Note that you cannot rename an existing job. If you really need to give a job
 > a new name you'll need to delete the existing job and create a new one.
 
+### Enqueuing or Updating a Job
+
+Sometimes you have a job you want to enqueue but only if it isn't already
+enqueued. And if it is, you want to update it to the latest settings. That's where
+`enqueueOrUpdate()` comes into play:
+
+```javascript
+const job = await repeater.enqueueOrUpdate({
+  name: 'sample-job',
+  endpoint: 'https://mysite.com/api/sample',
+  verb: 'post'
+})
+```
+
+In this example, if a job named `sample-job` already exists then this call would
+be the equivalent of:
+
+```javascript
+const job = await repeater.job('sample-job')
+await job.update({
+  endpoint: 'https://mysite.com/api/sample',
+  verb: 'post'
+})
+```
+
+If the job named `sample-job` does not exist, then the call would be equivalent to:
+
+```javascript
+const job = await repeater.enqueue({
+  name: 'sample-job',
+  endpoint: 'https://mysite.com/api/sample',
+  verb: 'post'
+})
+```
+
 ### Deleting a Job
 
 First look up the job by name and then issue the delete:

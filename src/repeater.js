@@ -73,6 +73,16 @@ export class Repeater {
     }
   }
 
+  async enqueueOrUpdate(params = {}) {
+    const job = await this.job(params.name)
+
+    if (job) {
+      return await job.update(params)
+    } else {
+      return await this.enqueue(params)
+    }
+  }
+
   async jobs() {
     try {
       const data = await this.client.request(jobsQuery)
