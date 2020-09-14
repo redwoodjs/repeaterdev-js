@@ -1,5 +1,4 @@
 import { graphQLClient } from './graphql'
-import { parse as durationParse } from 'iso8601-duration'
 import {
   create as createQuery,
   jobs as jobsQuery,
