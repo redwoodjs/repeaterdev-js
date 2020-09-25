@@ -11,3 +11,29 @@ export const merge = (obj1, obj2) => {
 
   return output
 }
+
+export const normalizeParams = (params) => {
+  const jsonHeader = { 'Content-Type': 'application/json' }
+
+  const normalizedParams = params
+
+  normalizedParams.verb = normalizedParams.verb?.toUpperCase()
+
+  if (!normalizedParams.body) {
+    if (params.json) {
+      normalizedParams.body = JSON.stringify(params.json)
+      normalizedParams.headers = normalizedParams.headers
+        ? merge(normalizedParams.headers, jsonHeader)
+        : jsonHeader
+    } else {
+      delete normalizedParams.body
+    }
+  }
+  delete normalizedParams.json
+
+  if (typeof normalizedParams.headers === 'object') {
+    normalizedParams.headers = JSON.stringify(normalizedParams.headers)
+  }
+
+  return normalizedParams
+}

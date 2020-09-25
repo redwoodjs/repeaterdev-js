@@ -5,7 +5,7 @@ import {
   job as jobQuery,
 } from './queries'
 import { GraphQLError, ParameterError } from './errors'
-import { merge } from './utility'
+import { merge, normalizeParams } from './utility'
 import Job from './types/job'
 
 export const API_ENDPOINT = 'https://api.repeater.dev/graphql'
@@ -59,7 +59,7 @@ export class Repeater {
       retryable: true,
       runAt: new Date(),
     }
-    const variables = this._normalizeParams(merge(defaultVariables, params))
+    const variables = normalizeParams(merge(defaultVariables, params))
 
     try {
       const data = await this.client.request(createQuery, variables)
@@ -116,37 +116,7 @@ export class Repeater {
     this._options = merge(DEFAULT_OPTIONS, options)
   }
 
-  setVariables(params) {
-    this.variables = merge(this.variables, this._normalizeParams(params))
-  }
-
   _initClient() {
     this.client = graphQLClient(this._token, this._options)
-  }
-
-  _normalizeParams(params) {
-    const jsonHeader = { 'Content-Type': 'application/json' }
-
-    const normalizedParams = params
-
-    normalizedParams.verb = normalizedParams.verb?.toUpperCase()
-
-    if (!normalizedParams.body) {
-      if (params.json) {
-        normalizedParams.body = JSON.stringify(params.json)
-        normalizedParams.headers = normalizedParams.headers
-          ? merge(normalizedParams.headers, jsonHeader)
-          : jsonHeader
-        delete normalizedParams.json
-      } else {
-        delete normalizedParams.body
-      }
-    }
-
-    if (typeof normalizedParams.headers === 'object') {
-      normalizedParams.headers = JSON.stringify(normalizedParams.headers)
-    }
-
-    return normalizedParams
   }
 }

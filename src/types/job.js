@@ -4,6 +4,7 @@ import {
   results as resultsQuery,
 } from '../queries'
 import { GraphQLError, ReadOnlyError } from '../errors'
+import { normalizeParams } from '../utility'
 import Type from './type'
 import JobResult from './jobResult'
 
@@ -42,7 +43,7 @@ export default class Job extends Type {
     try {
       const data = await this.client.request(
         updateQuery,
-        Object.assign({ name: this.name }, params)
+        normalizeParams(Object.assign({ name: this.name }, params))
       )
       this.parse(data.updateJob)
       return this
