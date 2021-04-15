@@ -1,6 +1,6 @@
 {
   "name": "repeaterdev-js",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Official Javascript library for Repeater.dev",
   "main": "dist/repeater.js",
   "files": [
@@ -23,7 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "graphql": "^15.3.0",
-    "graphql-request": "=3.0.0",
+    "graphql-request": "^3.3.0",
     "iso8601-duration": "^1.2.0",
     "@babel/runtime-corejs3": "^7.11.2"
   },
